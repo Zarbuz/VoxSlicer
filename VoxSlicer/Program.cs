@@ -33,7 +33,7 @@ namespace VoxSlicer
                 VoxModel model = reader.LoadModel(args[1]);
                 if (model == null) return;
 
-                DirectoryInfo directory = Directory.CreateDirectory(Path.GetFileNameWithoutExtension(args[0]));
+                DirectoryInfo directory = Directory.CreateDirectory(Path.GetFileNameWithoutExtension(args[1]));
 
                 foreach (var data in model.voxelFrames)
                 {
