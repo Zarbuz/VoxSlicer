@@ -14,7 +14,7 @@ namespace VoxSlicer
             VoxReader reader = new VoxReader();
             VoxWriter writer = new VoxWriter();
 
-            if (args.Length <= 2)
+            if (args.Length < 2)
             {
                 Console.WriteLine("[ERROR] Missing arguments");
                 Console.WriteLine("Usage: VoxSlicer.exe SIZE FILE");
@@ -85,7 +85,7 @@ namespace VoxSlicer
                             {
                                 if (schematics[x, y, z].TotalCount != 0)
                                 {
-                                    string name = $"{Path.GetFileNameWithoutExtension(args[0])}-{x}-{y}-{z}.vox";
+                                    string name = $"{Path.GetFileNameWithoutExtension(args[1])}-{x}-{y}-{z}.vox";
                                     Console.WriteLine("[INFO] Started to process: " + name);
                                     writer.WriteModel(Path.Combine(directory.FullName, name), schematics[x, y, z], 0, size);
                                 }
