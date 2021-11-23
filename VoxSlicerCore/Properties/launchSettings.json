@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "VoxSlicerCore": {
+      "commandName": "Project",
+      "commandLineArgs": "32 apeslice.vox"
+    }
+  }
+}

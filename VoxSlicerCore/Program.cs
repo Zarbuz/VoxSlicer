@@ -3,6 +3,7 @@ using FileToVoxCore.Vox;
 using System;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 
 namespace VoxSlicerCore
@@ -11,95 +12,95 @@ namespace VoxSlicerCore
 	{
 		static void Main(string[] args)
 		{
-            VoxReader reader = new VoxReader();
-            VoxWriter writer = new VoxWriter();
-            
-            DisplayInformations();
+			VoxReader reader = new VoxReader();
+			VoxWriter writer = new VoxWriter();
 
-            if (args.Length < 2)
-            {
-                Console.WriteLine("[ERROR] Missing arguments");
-                Console.WriteLine("Usage: VoxSlicer.exe SIZE FILE");
-                return;
-            }
+			DisplayInformations();
 
-            try
-            {
-                short size = Convert.ToInt16(args[0]);
-                if (size > 256)
-                {
-                    Console.WriteLine("[ERROR] Size must be lower than 256");
-                    return;
-                }
+			if (args.Length < 2)
+			{
+				Console.WriteLine("[ERROR] Missing arguments");
+				Console.WriteLine("Usage: VoxSlicer.exe SIZE FILE");
+				return;
+			}
 
-                VoxModel model = reader.LoadModel(args[1]);
+			try
+			{
+				short size = Convert.ToInt16(args[0]);
+				if (size > 256)
+				{
+					Console.WriteLine("[ERROR] Size must be lower than 256");
+					return;
+				}
 
-                if (model == null)
-                {
-                    Console.WriteLine("[ERROR] Failed to load model");
-	                return;
-                }
+				VoxModel model = reader.LoadModel(args[1]);
 
-                DirectoryInfo directory = Directory.CreateDirectory(Path.GetFileNameWithoutExtension(args[1]));
+				if (model == null)
+				{
+					Console.WriteLine("[ERROR] Failed to load model");
+					return;
+				}
 
-                foreach (VoxelData data in model.VoxelFrames)
-                {
-                    int sizeX = (int)Math.Ceiling((decimal)data.VoxelsWide / size);
-                    int sizeY = (int)Math.Ceiling((decimal)data.VoxelsTall / size);
-                    int sizeZ = (int)Math.Ceiling((decimal)data.VoxelsDeep / size);
+				DirectoryInfo directory = Directory.CreateDirectory(Path.GetFileNameWithoutExtension(args[1]));
 
-                    Schematic[,,] schematics = new Schematic[sizeX, sizeY, sizeZ];
-                    Color[] colors = model.Palette;
-                    for (int y = 0; y < data.VoxelsTall; y++)
-                    {
-                        for (int z = 0; z < data.VoxelsDeep; z++)
-                        {
-                            for (int x = 0; x < data.VoxelsWide; x++)
-                            {
-                                int posX = x / size;
-                                int posY = y / size;
-                                int posZ = z / size;
+				foreach (VoxelData data in model.VoxelFrames)
+				{
+					int sizeX = (int)Math.Ceiling((decimal)data.VoxelsWide / size);
+					int sizeY = (int)Math.Ceiling((decimal)data.VoxelsTall / size);
+					int sizeZ = (int)Math.Ceiling((decimal)data.VoxelsDeep / size);
 
-                                schematics[posX, posY, posZ] ??= new Schematic();
+					Schematic[,,] schematics = new Schematic[sizeX, sizeY, sizeZ];
+					Color[] colors = model.Palette;
+					for (int y = 0; y < data.VoxelsTall; y++)
+					{
+						for (int z = 0; z < data.VoxelsDeep; z++)
+						{
+							for (int x = 0; x < data.VoxelsWide; x++)
+							{
+								int posX = x / size;
+								int posY = y / size;
+								int posZ = z / size;
 
-                                int indexColor = data.Get(x, y, z);
-                                Color color = colors[indexColor];
-                                if (!color.IsEmpty)
-                                {
-	                                schematics[posX, posY, posZ].AddVoxel(x, y, z, color);
-                                }
-                            }
-                        }
-                    }
+								schematics[posX, posY, posZ] ??= new Schematic();
+								int indexColor = data.Get(x, y, z);
+								Color color = colors[indexColor];
 
-                    for (int x = 0; x < schematics.GetLength(0); x++)
-                    {
-                        for (int y = 0; y < schematics.GetLength(1); y++)
-                        {
-                            for (int z = 0; z < schematics.GetLength(2); z++)
-                            {
-                                if (schematics[x, y, z].GetAllVoxels().Count != 0)
-                                {
-                                    string name = $"{Path.GetFileNameWithoutExtension(args[1])}-{x}-{y}-{z}.vox";
-                                    Console.WriteLine("[INFO] Started to process: " + name);
-                                    string outputPath = Path.Combine(directory.FullName, name);
-                                    writer.WriteModel(size, outputPath,null, schematics[x, y, z]);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            catch (Exception)
-            {
-                Console.WriteLine("[ERROR] Failed to read voxel volume size");
-            }
-        }
+								if (indexColor != 0)
+								{
+									schematics[posX, posY, posZ].AddVoxel(x, y, z, color);
+								}
+							}
+						}
+					}
+
+					for (int x = 0; x < schematics.GetLength(0); x++)
+					{
+						for (int y = 0; y < schematics.GetLength(1); y++)
+						{
+							for (int z = 0; z < schematics.GetLength(2); z++)
+							{
+								if (schematics[x, y, z].GetAllVoxels().Count != 0)
+								{
+									string name = $"{Path.GetFileNameWithoutExtension(args[1])}-{x}-{y}-{z}.vox";
+									Console.WriteLine("[INFO] Started to process: " + name);
+									string outputPath = Path.Combine(directory.FullName, name);
+									writer.WriteModel(size, outputPath, model.Palette.ToList(), schematics[x, y, z]);
+								}
+							}
+						}
+					}
+				}
+			}
+			catch (Exception)
+			{
+				Console.WriteLine("[ERROR] Failed to read voxel volume size");
+			}
+		}
 
 		private static void DisplayInformations()
 		{
 			Console.WriteLine("[INFO] VoxSlicer v" + Assembly.GetExecutingAssembly().GetName().Version);
 			Console.WriteLine("[INFO] Author: @Zarbuz. Contact : https://twitter.com/Zarbuz");
 		}
-    }
+	}
 }
