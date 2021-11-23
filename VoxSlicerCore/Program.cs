@@ -3,6 +3,7 @@ using FileToVoxCore.Vox;
 using System;
 using System.Drawing;
 using System.IO;
+using System.Reflection;
 
 namespace VoxSlicerCore
 {
@@ -12,6 +13,8 @@ namespace VoxSlicerCore
 		{
             VoxReader reader = new VoxReader();
             VoxWriter writer = new VoxWriter();
+            
+            DisplayInformations();
 
             if (args.Length < 2)
             {
@@ -92,5 +95,11 @@ namespace VoxSlicerCore
                 Console.WriteLine("[ERROR] Failed to read voxel volume size");
             }
         }
+
+		private static void DisplayInformations()
+		{
+			Console.WriteLine("[INFO] VoxSlicer v" + Assembly.GetExecutingAssembly().GetName().Version);
+			Console.WriteLine("[INFO] Author: @Zarbuz. Contact : https://twitter.com/Zarbuz");
+		}
     }
 }
