@@ -1,16 +1,15 @@
-﻿using System;
+﻿using FileToVoxCore.Schematics;
+using FileToVoxCore.Vox;
+using System;
 using System.Drawing;
 using System.IO;
-using VoxSlicer.Extensions;
-using VoxSlicer.Schematics;
-using VoxSlicer.Vox;
 
-namespace VoxSlicer
+namespace VoxSlicerCore
 {
-    class Program
-    {
-        static void Main(string[] args)
-        {
+	class Program
+	{
+		static void Main(string[] args)
+		{
             VoxReader reader = new VoxReader();
             VoxWriter writer = new VoxWriter();
 
@@ -24,29 +23,30 @@ namespace VoxSlicer
             try
             {
                 short size = Convert.ToInt16(args[0]);
-                if (size >= 126)
+                if (size > 256)
                 {
-                    Console.WriteLine("[ERROR] Size must be lower than 126");
+                    Console.WriteLine("[ERROR] Size must be lower than 256");
                     return;
                 }
 
                 VoxModel model = reader.LoadModel(args[1]);
-                if (model == null) return;
+
+                if (model == null)
+                {
+                    Console.WriteLine("[ERROR] Failed to load model");
+	                return;
+                }
 
                 DirectoryInfo directory = Directory.CreateDirectory(Path.GetFileNameWithoutExtension(args[1]));
 
-                foreach (var data in model.voxelFrames)
+                foreach (VoxelData data in model.VoxelFrames)
                 {
-                    SchematicConstants.WidthSchematic = size;
-                    SchematicConstants.HeightSchematic = size;
-                    SchematicConstants.LengthSchematic = size;
-
                     int sizeX = (int)Math.Ceiling((decimal)data.VoxelsWide / size);
                     int sizeY = (int)Math.Ceiling((decimal)data.VoxelsTall / size);
                     int sizeZ = (int)Math.Ceiling((decimal)data.VoxelsDeep / size);
-                    Schematic[,,] schematics = new Schematic[sizeX, sizeY, sizeZ];
 
-                    Color[] colors = model.palette;
+                    Schematic[,,] schematics = new Schematic[sizeX, sizeY, sizeZ];
+                    Color[] colors = model.Palette;
                     for (int y = 0; y < data.VoxelsTall; y++)
                     {
                         for (int z = 0; z < data.VoxelsDeep; z++)
@@ -57,21 +57,13 @@ namespace VoxSlicer
                                 int posY = y / size;
                                 int posZ = z / size;
 
-                                if (schematics[posX, posY, posZ] == null)
-                                {
-                                    schematics[posX, posY, posZ] = new Schematic()
-                                    {
-                                        Blocks = new System.Collections.Generic.HashSet<Block>(),
-                                        Heigth = size,
-                                        Length = size,
-                                        Width = size
-                                    };
-                                }
+                                schematics[posX, posY, posZ] ??= new Schematic();
+
                                 int indexColor = data.Get(x, y, z);
                                 Color color = colors[indexColor];
                                 if (!color.IsEmpty)
                                 {
-                                    schematics[posX, posY, posZ].Blocks.Add(new Block((ushort)x, (ushort)y, (ushort)z, color.ColorToUInt()));
+	                                schematics[posX, posY, posZ].AddVoxel(x, y, z, color);
                                 }
                             }
                         }
@@ -83,11 +75,12 @@ namespace VoxSlicer
                         {
                             for (int z = 0; z < schematics.GetLength(2); z++)
                             {
-                                if (schematics[x, y, z].TotalCount != 0)
+                                if (schematics[x, y, z].GetAllVoxels().Count != 0)
                                 {
                                     string name = $"{Path.GetFileNameWithoutExtension(args[1])}-{x}-{y}-{z}.vox";
                                     Console.WriteLine("[INFO] Started to process: " + name);
-                                    writer.WriteModel(Path.Combine(directory.FullName, name), schematics[x, y, z], 0, size);
+                                    string outputPath = Path.Combine(directory.FullName, name);
+                                    writer.WriteModel(size, outputPath,null, schematics[x, y, z]);
                                 }
                             }
                         }
