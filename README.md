@@ -5,7 +5,7 @@ Slice a MagicaVoxel project into smaller volumes.
 
 `VoxSlicer.exe SIZE FILE`
 
-- SLICE represent the volume size of the exported regions. (Max 126)
+- SLICE represent the volume size of the exported regions. (Max 256)
 - FILE the .vox file to process: 
 
 Example : 
