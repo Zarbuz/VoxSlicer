@@ -43,7 +43,6 @@ namespace VoxSlicerCore
 
 				Schematic.CHUNK_SIZE = size;
 				DirectoryInfo directory = Directory.CreateDirectory(Path.GetFileNameWithoutExtension(args[1]));
-
 				foreach (VoxelData data in model.VoxelFrames)
 				{
 					int sizeX = (int)Math.Ceiling((decimal)data.VoxelsWide / size);
@@ -82,10 +81,11 @@ namespace VoxSlicerCore
 							{
 								if (schematics[x, y, z].GetAllVoxels().Count != 0)
 								{
+									var rotation = model.TransformNodeChunks.First().RotationAt();
 									string name = $"{Path.GetFileNameWithoutExtension(args[1])}-{x}-{y}-{z}.vox";
 									Console.WriteLine("[INFO] Started to process: " + name);
 									string outputPath = Path.Combine(directory.FullName, name);
-									writer.WriteModel(size, outputPath, model.Palette.ToList(), schematics[x, y, z]);
+									writer.WriteModel(size, outputPath, model.Palette.ToList(), schematics[x, y, z], rotation);
 								}
 							}
 						}
