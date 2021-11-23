@@ -27,9 +27,9 @@ namespace VoxSlicerCore
 			try
 			{
 				short size = Convert.ToInt16(args[0]);
-				if (size > 256)
+				if (size <= 10 || size > 256)
 				{
-					Console.WriteLine("[ERROR] Size must be lower than 256");
+					Console.WriteLine("[ERROR] Size must be between 10 and 256");
 					return;
 				}
 
@@ -41,6 +41,7 @@ namespace VoxSlicerCore
 					return;
 				}
 
+				Schematic.CHUNK_SIZE = size;
 				DirectoryInfo directory = Directory.CreateDirectory(Path.GetFileNameWithoutExtension(args[1]));
 
 				foreach (VoxelData data in model.VoxelFrames)
